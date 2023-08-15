@@ -2337,7 +2337,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 if torch.cuda.is_available():
                     device_map = {"": torch.cuda.current_device()}
                 else:
-                    raise RuntimeError("No GPU found. A GPU is needed for quantization.")
+                    logger.info("No GPU found. Use CPU")
                 logger.info(
                     "The device_map was not initialized."
                     "Setting device_map to {'':torch.cuda.current_device()}."
