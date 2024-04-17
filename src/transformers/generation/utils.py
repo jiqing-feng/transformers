@@ -3111,8 +3111,6 @@ class GenerationMixin:
 
         decoder_prompt_len = input_ids.shape[-1]  # record the prompt length of decoder
 
-        import pdb; pdb.set_trace()
-
         while self._has_unfinished_sequences(this_peer_finished, synced_gpus, device=input_ids.device):
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
