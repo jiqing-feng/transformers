@@ -34,6 +34,7 @@ import warnings
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from torch.profiler import profile, record_function, ProfilerActivity
 
 
 # Integrations must be imported before ML frameworks:
@@ -2199,7 +2200,10 @@ class Trainer:
                     self.control = self.callback_handler.on_step_begin(args, self.state, self.control)
 
                 with self.accelerator.accumulate(model):
+                    # with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as prof:
+                    #     with record_function("model_training_step"):
                     tr_loss_step = self.training_step(model, inputs)
+                    # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
 
                 if (
                     args.logging_nan_inf_filter

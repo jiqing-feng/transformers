@@ -3166,7 +3166,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 torch_dtype=torch_dtype, from_tf=from_tf, from_flax=from_flax, device_map=device_map
             )
             torch_dtype = hf_quantizer.update_torch_dtype(torch_dtype)
-            device_map = hf_quantizer.update_device_map(device_map)
+            #device_map = hf_quantizer.update_device_map(device_map)
 
             # Force-set to `True` for more mem efficiency
             if low_cpu_mem_usage is None:
@@ -3623,8 +3623,8 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             model.tie_weights()
             device_map = infer_auto_device_map(model, dtype=target_dtype, **device_map_kwargs)
 
-            if hf_quantizer is not None:
-                hf_quantizer.validate_environment(device_map=device_map)
+            # if hf_quantizer is not None:
+                # hf_quantizer.validate_environment(device_map=device_map)
 
         elif device_map is not None:
             model.tie_weights()
