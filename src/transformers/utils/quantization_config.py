@@ -624,6 +624,7 @@ class GPTQConfig(QuantizationConfigMixin):
         pad_token_id: Optional[int] = None,
         use_exllama: Optional[bool] = None,
         max_input_length: Optional[int] = None,
+        checkpoint_format: Optional[str] = None,
         exllama_config: Optional[Dict[str, Any]] = None,
         cache_block_outputs: bool = True,
         modules_in_block_to_quantize: Optional[List[List[str]]] = None,
@@ -650,6 +651,7 @@ class GPTQConfig(QuantizationConfigMixin):
         self.disable_exllama = kwargs.pop("disable_exllama", None)
         self.cache_block_outputs = cache_block_outputs
         self.modules_in_block_to_quantize = modules_in_block_to_quantize
+        self.checkpoint_format = checkpoint_format
         self.post_init()
 
     def get_loading_attributes(self):
