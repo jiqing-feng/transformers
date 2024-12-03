@@ -78,13 +78,11 @@ class GptqHfQuantizer(HfQuantizer):
             raise RuntimeError("We can only quantize pure text model.")
 
         if self.pre_quantized:
-            model = self.optimum_quantizer.convert_model(model, **kwargs)
-        else:
-            self.optimum_quantizer.quantize_preprocess(model, **kwargs)
+            model = self.optimum_quantizer.convert_model(model)
 
     def _process_model_after_weight_loading(self, model: "PreTrainedModel", **kwargs):
         if self.pre_quantized:
-            model = self.optimum_quantizer.post_init_model(model, **kwargs)
+            model = self.optimum_quantizer.post_init_model(model)
         else:
             if self.quantization_config.tokenizer is None:
                 self.quantization_config.tokenizer = model.name_or_path
