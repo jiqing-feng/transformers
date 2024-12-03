@@ -624,7 +624,7 @@ class GPTQConfig(QuantizationConfigMixin):
         pad_token_id: Optional[int] = None,
         use_exllama: Optional[bool] = None,
         max_input_length: Optional[int] = None,
-        checkpoint_format: Optional[str] = None,
+        checkpoint_format: Optional[str] = "gptq",
         exllama_config: Optional[Dict[str, Any]] = None,
         cache_block_outputs: bool = True,
         modules_in_block_to_quantize: Optional[List[List[str]]] = None,
