@@ -576,7 +576,7 @@ class GPTQConfig(QuantizationConfigMixin):
             the entire block at once, we perform layer-wise quantization. As a result, each layer undergoes
             quantization using inputs that have passed through the previously quantized layers.
         checkpoint_format (`str`, *optional*, defaults to `gptq`):
-            GPTQ weight format. `gptq`(v1) is supported by both gptqmodel and auto-gptq. `gptq_v2` is only  gptqmodel only.
+            GPTQ weight format. `gptq`(v1) is supported by both gptqmodel and auto-gptq. `gptq_v2` is gptqmodel only.
         use_cuda_fp16 (`bool`, *optional*, defaults to `False`):
             Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16.
         model_seqlen (`int`, *optional*):
