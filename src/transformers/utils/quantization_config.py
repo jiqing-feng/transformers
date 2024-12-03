@@ -575,6 +575,8 @@ class GPTQConfig(QuantizationConfigMixin):
             Whether to perform sequential quantization even within a single Transformer block. Instead of quantizing
             the entire block at once, we perform layer-wise quantization. As a result, each layer undergoes
             quantization using inputs that have passed through the previously quantized layers.
+        checkpoint_format (`str`, *optional*, defaults to `gptq`):
+            GPTQ weight format. `gptq`(v1) is supported by both gptqmodel and auto-gptq. `gptq_v2` is only  gptqmodel only.
         use_cuda_fp16 (`bool`, *optional*, defaults to `False`):
             Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16.
         model_seqlen (`int`, *optional*):
@@ -616,6 +618,7 @@ class GPTQConfig(QuantizationConfigMixin):
         desc_act: bool = False,
         sym: bool = True,
         true_sequential: bool = True,
+        checkpoint_format: Optional[str] = "gptq",
         use_cuda_fp16: bool = False,
         model_seqlen: Optional[int] = None,
         block_name_to_quantize: Optional[str] = None,
@@ -624,7 +627,6 @@ class GPTQConfig(QuantizationConfigMixin):
         pad_token_id: Optional[int] = None,
         use_exllama: Optional[bool] = None,
         max_input_length: Optional[int] = None,
-        checkpoint_format: Optional[str] = "gptq",
         exllama_config: Optional[Dict[str, Any]] = None,
         cache_block_outputs: bool = True,
         modules_in_block_to_quantize: Optional[List[List[str]]] = None,
