@@ -577,7 +577,7 @@ class GPTQConfig(QuantizationConfigMixin):
             quantization using inputs that have passed through the previously quantized layers.
         checkpoint_format (`str`, *optional*, defaults to `gptq`):
             GPTQ weight format. `gptq`(v1) is supported by both gptqmodel and auto-gptq. `gptq_v2` is gptqmodel only.
-        meta (`Dict[str, str]`, *optional*):
+        meta (`Dict[str, any]`, *optional*):
             Properties that do not directly contributes to quantization or quant inference should be placed in meta.
             i.e. quantizer tool (producer) + version, timestamp, entity who made the quant, etc
         use_cuda_fp16 (`bool`, *optional*, defaults to `False`):
@@ -622,7 +622,7 @@ class GPTQConfig(QuantizationConfigMixin):
         sym: bool = True,
         true_sequential: bool = True,
         checkpoint_format: str = "gptq",
-        meta: Optional[Dict[str, str]] = None,
+        meta: Optional[Dict[str, any]] = None,
         use_cuda_fp16: bool = False,
         model_seqlen: Optional[int] = None,
         block_name_to_quantize: Optional[str] = None,
