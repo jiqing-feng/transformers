@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from packaging import version
 
+from .import_utils import is_auto_gptq_available
 from ..utils import is_auto_awq_available, is_hqq_available, is_torch_available, is_torchao_available, logging
 
 
@@ -728,12 +729,13 @@ class GPTQConfig(QuantizationConfigMixin):
                     "speed using exllamav2 kernel by setting `exllama_config`."
                 )
             elif self.exllama_config["version"] == ExllamaVersion.TWO:
-                optimum_version = version.parse(importlib.metadata.version("optimum"))
-                autogptq_version = version.parse(importlib.metadata.version("auto_gptq"))
-                if optimum_version <= version.parse("1.13.2") or autogptq_version <= version.parse("0.4.2"):
-                    raise ValueError(
-                        f"You need optimum > 1.13.2 and auto-gptq > 0.4.2 . Make sure to have that version installed - detected version : optimum {optimum_version} and autogptq {autogptq_version}"
-                    )
+                if is_auto_gptq_available():
+                    optimum_version = version.parse(importlib.metadata.version("optimum"))
+                    autogptq_version = version.parse(importlib.metadata.version("auto_gptq"))
+                    if optimum_version <= version.parse("1.13.2") or autogptq_version <= version.parse("0.4.2"):
+                        raise ValueError(
+                            f"You need optimum > 1.13.2 and auto-gptq > 0.4.2 . Make sure to have that version installed - detected version : optimum {optimum_version} and autogptq {autogptq_version}"
+                        )
         if self.modules_in_block_to_quantize is not None:
             optimum_version = version.parse(importlib.metadata.version("optimum"))
             if optimum_version < version.parse("1.15.0"):
