@@ -84,6 +84,7 @@ class GPTQTest(unittest.TestCase):
     input_text = "Hello my name is"
 
     EXPECTED_OUTPUTS = set()
+    # flaky test: gptqmodel and auto-gptq are not output equivalent nor is string compare deterministic even between transformer/torch versions
     EXPECTED_OUTPUTS.add("Hello my name is Katie, I am a 22 year")
 
     # this seems a little small considering that we are doing 4bit quant but we have a small model and ww don't quantize the embeddings
@@ -272,6 +273,7 @@ class GPTQTestCUDA(GPTQTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # flaky test: gptqmodel and auto-gptq are not output equivalent nor is string compare deterministic even between transformer/torch versions
         cls.EXPECTED_OUTPUTS.add("Hello my name is Katie. I am a 20 year")
 
     def test_change_loading_attributes(self):
@@ -317,6 +319,7 @@ class GPTQTestActOrderExllama(unittest.TestCase):
     """
 
     EXPECTED_OUTPUTS = set()
+    # flaky test: gptqmodel and auto-gptq are not output equivalent nor is string compare deterministic even between transformer/torch versions
     EXPECTED_OUTPUTS.add("Hello, how are you ? I'm doing good, thanks for asking.")
     # 4bit + act_order + 128g
     model_name = "hf-internal-testing/TinyLlama-1.1B-Chat-v0.3-GPTQ"
@@ -392,6 +395,7 @@ class GPTQTestExllamaV2(unittest.TestCase):
     """
 
     EXPECTED_OUTPUTS = set()
+    # flaky test: gptqmodel and auto-gptq are not output equivalent nor is string compare deterministic even between transformer/torch versions
     EXPECTED_OUTPUTS.add("Hello, how are you ? I'm doing good, thanks for asking.")
     # 4bit + act_order + 128g
     model_name = "hf-internal-testing/TinyLlama-1.1B-Chat-v0.3-GPTQ"
