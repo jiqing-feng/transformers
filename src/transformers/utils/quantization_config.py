@@ -575,7 +575,7 @@ class GPTQConfig(QuantizationConfigMixin):
             Whether to perform sequential quantization even within a single Transformer block. Instead of quantizing
             the entire block at once, we perform layer-wise quantization. As a result, each layer undergoes
             quantization using inputs that have passed through the previously quantized layers.
-        checkpoint_format (`str`, *optional*, defaults to `gptq`):
+        checkpoint_format (`str`, *optional*, defaults to `"gptq"`):
             GPTQ weight format. `gptq`(v1) is supported by both gptqmodel and auto-gptq. `gptq_v2` is gptqmodel only.
         meta (`Dict[str, any]`, *optional*):
             Properties, such as tooling:version, that do not directly contributes to quantization or quant inference are stored in meta.
