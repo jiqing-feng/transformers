@@ -183,7 +183,6 @@ class GPTQTest(unittest.TestCase):
                 desc_act=self.desc_act,
                 sym=self.sym,
                 device_map=self.device_map,
-                pack=True,
                 checkpoint_format=checkpoint_format,
                 meta=meta,
             )
@@ -246,7 +245,7 @@ class GPTQTest(unittest.TestCase):
                         tmpdirname, device_map=self.device_map
                     )
             else:
-                quant_type = "ipex" if self.device_map == "cpu" else "exllamav2"
+                quant_type = "ipex" if self.device_map == "cpu" else "exllama"
                 quantized_model_from_saved = AutoModelForCausalLM.from_pretrained(
                     tmpdirname, device_map=self.device_map
                 )
@@ -416,6 +415,9 @@ class GPTQTestExllamaV2(unittest.TestCase):
         cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_name, use_fast=True)
 
     def test_quantized_layers_type(self):
+        if is_gptqmodel_available():
+            # gptqmodel.hf_select_quant_linear() now does not select ExllamaV2
+            return
         self.assertTrue(self.quantized_model.model.layers[0].self_attn.k_proj.QUANT_TYPE == "exllamav2")
 
     def check_inference_correctness(self, model):
