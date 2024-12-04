@@ -90,6 +90,7 @@ class GPTQTest(unittest.TestCase):
     EXPECTED_RELATIVE_DIFFERENCE = 2.06183008
 
     bits = 4
+    sym = True
     group_size = 128
     desc_act = False
     use_exllama = False
@@ -120,6 +121,7 @@ class GPTQTest(unittest.TestCase):
             tokenizer=cls.tokenizer,
             group_size=cls.group_size,
             desc_act=cls.desc_act,
+            sym=cls.sym,
             use_exllama=cls.use_exllama,
         )
 
@@ -178,9 +180,9 @@ class GPTQTest(unittest.TestCase):
                 bits=self.bits,
                 group_size=self.group_size,
                 desc_act=self.desc_act,
-                sym=True,
+                sym=self.sym,
                 device_map=self.device_map,
-                pack=False,
+                pack=True,
                 checkpoint_format=checkpoint_format,
                 meta=meta,
             )
@@ -243,7 +245,7 @@ class GPTQTest(unittest.TestCase):
                         tmpdirname, device_map=self.device_map
                     )
             else:
-                quant_type = "ipex" if self.device_map == "cpu" else "cuda"
+                quant_type = "ipex" if self.device_map == "cpu" else "exllamav2"
                 quantized_model_from_saved = AutoModelForCausalLM.from_pretrained(
                     tmpdirname, device_map=self.device_map
                 )
@@ -266,6 +268,11 @@ class GPTQTest(unittest.TestCase):
 class GPTQTestCUDA(GPTQTest):
     EXPECTED_RELATIVE_DIFFERENCE = 2.06183008
     device_map = {"": 0}
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.EXPECTED_OUTPUTS.add("Hello my name is Katie. I am a 20 year")
 
     def test_change_loading_attributes(self):
         """
