@@ -18,7 +18,7 @@ import unittest
 
 import pytest
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, GPTQConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, GPTQConfig, AutoConfig
 from transformers.testing_utils import (
     is_torch_available,
     require_accelerate,
@@ -112,6 +112,7 @@ class GPTQTest(unittest.TestCase):
         cls.mem_fp16 = cls.model_fp16.get_memory_footprint()
 
         cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_name, use_fast=True)
+        cls.config = AutoConfig.from_pretrained(cls.model_name)
 
         quantization_config = GPTQConfig(
             bits=cls.bits,
@@ -167,7 +168,12 @@ class GPTQTest(unittest.TestCase):
         """
         if is_gptqmodel_available():
             from gptqmodel.utils.importer import hf_select_quant_linear
-
+            if hasattr(self.config, "quantization_config"):
+                checkpoint_format = self.config.quantization_config.get("checkpoint_format")
+                meta = self.config.quantization_config.get("meta")
+            else:
+                checkpoint_format = "gptq"
+                meta = None
             QuantLinear = hf_select_quant_linear(
                 bits=self.bits,
                 group_size=self.group_size,
@@ -175,6 +181,8 @@ class GPTQTest(unittest.TestCase):
                 sym=True,
                 device_map=self.device_map,
                 pack=False,
+                checkpoint_format=checkpoint_format,
+                meta=meta,
             )
         elif is_auto_gptq_available():
             from auto_gptq.utils.import_utils import dynamically_import_QuantLinear as hf_select_quant_linear
