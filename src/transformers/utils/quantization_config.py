@@ -699,13 +699,13 @@ class GPTQConfig(QuantizationConfigMixin):
                     ['wikitext2','c4','c4-new'], but we found {self.dataset}"""
                 )
 
-        if is_gptqmodel_available() and self.backend is None:
-            if self.exllama_config["version"] == ExllamaVersion.ONE and not self.use_exllama:
-                self.backend = "auto_trainable"
-            else:
-                self.backend = "auto"
-
-        if self.backend is not None and not is_gptqmodel_available():
+        if is_gptqmodel_available():
+            if self.backend is None:
+                if self.exllama_config["version"] == ExllamaVersion.ONE and not self.use_exllama:
+                    self.backend = "auto_trainable"
+                else:
+                    self.backend = "auto"
+        else:
             if self.backend == "auto_trainable":
                 self.use_exllama = False
 
