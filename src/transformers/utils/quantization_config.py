@@ -582,8 +582,11 @@ class GPTQConfig(QuantizationConfigMixin):
         meta (`Dict[str, any]`, *optional*):
             Properties, such as tooling:version, that do not directly contributes to quantization or quant inference are stored in meta.
             i.e. `meta.quantizer`: ["optimum:_version_", "gptqmodel:_version_"]
+        backend (`str`, *optional*):
+            Controls which gptq kernel to be used. Valid values for gptqmodel are `auto`, `auto_trainable` and more. For auto-gptq, only 
+            valid value is None and `auto_trainable`. Ref gptqmodel backends: https://github.com/ModelCloud/GPTQModel/blob/main/gptqmodel/utils/backend.py
         use_cuda_fp16 (`bool`, *optional*, defaults to `False`):
-            Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16.
+            Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16. Auto-gptq omly.
         model_seqlen (`int`, *optional*):
             The maximum sequence length that the model can take.
         block_name_to_quantize (`str`, *optional*):
@@ -624,8 +627,8 @@ class GPTQConfig(QuantizationConfigMixin):
         sym: bool = True,
         true_sequential: bool = True,
         checkpoint_format: str = "gptq",
-        backend: Optional[str] = None,
         meta: Optional[Dict[str, any]] = None,
+        backend: Optional[str] = None,
         use_cuda_fp16: bool = False,
         model_seqlen: Optional[int] = None,
         block_name_to_quantize: Optional[str] = None,
@@ -699,6 +702,7 @@ class GPTQConfig(QuantizationConfigMixin):
                     ['wikitext2','c4','c4-new'], but we found {self.dataset}"""
                 )
 
+        # make sure backend is compatible with both gptqmodel and auto-gptq
         if is_gptqmodel_available():
             if self.backend is None:
                 self.backend = "auto_trainable" if not self.use_exllama else "auto"
@@ -706,6 +710,7 @@ class GPTQConfig(QuantizationConfigMixin):
             if self.backend == "auto_trainable":
                 self.use_exllama = False
 
+        # auto-gptq specific kernel control logic
         if self.disable_exllama is None and self.use_exllama is None:
             # New default behaviour
             self.use_exllama = True
