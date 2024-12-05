@@ -26,7 +26,8 @@ from typing import Any, Dict, List, Optional, Union
 from packaging import version
 
 from .import_utils import is_auto_gptq_available
-from ..utils import is_auto_awq_available, is_hqq_available, is_torch_available, is_torchao_available, logging
+from ..utils import (is_auto_awq_available, is_hqq_available, is_torch_available, is_gptqmodel_available,
+                     is_torchao_available, logging)
 
 
 if is_torch_available():
@@ -623,6 +624,7 @@ class GPTQConfig(QuantizationConfigMixin):
         sym: bool = True,
         true_sequential: bool = True,
         checkpoint_format: str = "gptq",
+        backend: Optional[str] = None,
         meta: Optional[Dict[str, any]] = None,
         use_cuda_fp16: bool = False,
         model_seqlen: Optional[int] = None,
@@ -660,6 +662,7 @@ class GPTQConfig(QuantizationConfigMixin):
         self.modules_in_block_to_quantize = modules_in_block_to_quantize
         self.checkpoint_format = checkpoint_format
         self.meta = meta
+        self.backend = backend
         self.post_init()
 
     def get_loading_attributes(self):
@@ -695,6 +698,10 @@ class GPTQConfig(QuantizationConfigMixin):
                     f"""dataset needs to be either a list of string or a value in
                     ['wikitext2','c4','c4-new'], but we found {self.dataset}"""
                 )
+
+        if self.backend is not None and not is_gptqmodel_available():
+            if self.backend == "auto_trainable":
+                self.use_exllama = False
 
         if self.disable_exllama is None and self.use_exllama is None:
             # New default behaviour
@@ -742,6 +749,12 @@ class GPTQConfig(QuantizationConfigMixin):
                 raise ValueError(
                     "You current version of `optimum` does not support `modules_in_block_to_quantize` quantization argument, please upgrade `optimum` package to a version superior than 1.15.0 ."
                 )
+
+        if is_gptqmodel_available() and self.backend is None:
+            if self.exllama_config["version"] == ExllamaVersion.ONE and not self.use_exllama:
+                self.backend = "auto_trainable"
+            else:
+                self.backend = "auto"
 
     def to_dict(self):
         config_dict = super().to_dict()
