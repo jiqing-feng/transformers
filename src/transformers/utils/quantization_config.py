@@ -665,7 +665,7 @@ class GPTQConfig(QuantizationConfigMixin):
         self.modules_in_block_to_quantize = modules_in_block_to_quantize
         self.checkpoint_format = checkpoint_format.lower()
         self.meta = meta
-        self.backend = backend.lower()
+        self.backend = backend.lower() if backend is not None else None
         self.post_init()
 
     def get_loading_attributes(self):
