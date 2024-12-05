@@ -701,10 +701,7 @@ class GPTQConfig(QuantizationConfigMixin):
 
         if is_gptqmodel_available():
             if self.backend is None:
-                if self.exllama_config["version"] == ExllamaVersion.ONE and not self.use_exllama:
-                    self.backend = "auto_trainable"
-                else:
-                    self.backend = "auto"
+                self.backend = "auto_trainable" if not self.use_exllama else "auto"
         else:
             if self.backend == "auto_trainable":
                 self.use_exllama = False
