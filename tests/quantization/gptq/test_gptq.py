@@ -222,7 +222,7 @@ class GPTQTest(unittest.TestCase):
         """
         Simple test to check the quality of the model by comparing the generated tokens with the expected tokens
         """
-        if self.device_map != "cpu":
+        if self.device_map is None:
             self.check_inference_correctness(self.quantized_model.to(0))
         else:
             self.check_inference_correctness(self.quantized_model)
