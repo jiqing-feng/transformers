@@ -651,6 +651,9 @@ class GPTQConfig(QuantizationConfigMixin):
         self.desc_act = desc_act
         self.sym = sym
         self.true_sequential = true_sequential
+        self.checkpoint_format = checkpoint_format.lower()
+        self.meta = meta
+        self.backend = backend.lower() if isinstance(backend, str) else backend
         self.use_cuda_fp16 = use_cuda_fp16
         self.model_seqlen = model_seqlen
         self.block_name_to_quantize = block_name_to_quantize
@@ -663,9 +666,6 @@ class GPTQConfig(QuantizationConfigMixin):
         self.disable_exllama = kwargs.pop("disable_exllama", None)
         self.cache_block_outputs = cache_block_outputs
         self.modules_in_block_to_quantize = modules_in_block_to_quantize
-        self.checkpoint_format = checkpoint_format.lower()
-        self.meta = meta
-        self.backend = backend.lower() if backend is not None else None
         self.post_init()
 
     def get_loading_attributes(self):
