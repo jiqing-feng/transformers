@@ -663,9 +663,9 @@ class GPTQConfig(QuantizationConfigMixin):
         self.disable_exllama = kwargs.pop("disable_exllama", None)
         self.cache_block_outputs = cache_block_outputs
         self.modules_in_block_to_quantize = modules_in_block_to_quantize
-        self.checkpoint_format = checkpoint_format
+        self.checkpoint_format = checkpoint_format.lower()
         self.meta = meta
-        self.backend = backend
+        self.backend = backend.lower()
         self.post_init()
 
     def get_loading_attributes(self):
