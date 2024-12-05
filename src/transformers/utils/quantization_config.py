@@ -702,11 +702,13 @@ class GPTQConfig(QuantizationConfigMixin):
                     ['wikitext2','c4','c4-new'], but we found {self.dataset}"""
                 )
 
-        # make sure backend is compatible with both gptqmodel and auto-gptq
+        # make sure backend is back/forward compatible with both gptqmodel (full) and auto-gptq (partial)
         if is_gptqmodel_available():
+            # convert auto-gptq control into gptqmodel backend
             if self.backend is None:
                 self.backend = "auto_trainable" if not self.use_exllama else "auto"
         else:
+            # convert gptqmodel backend `auto_trainable` into auto-gptq control
             if self.backend == "auto_trainable":
                 self.use_exllama = False
 
