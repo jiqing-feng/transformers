@@ -116,7 +116,7 @@ class GPTQTest(unittest.TestCase):
         cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_name, use_fast=True)
         cls.config = AutoConfig.from_pretrained(cls.model_name)
 
-        quantization_config = GPTQConfig(
+        cls.quantization_config = GPTQConfig(
             bits=cls.bits,
             dataset=cls.dataset,
             tokenizer=cls.tokenizer,
@@ -130,7 +130,7 @@ class GPTQTest(unittest.TestCase):
             cls.model_name,
             torch_dtype=torch.float16,
             device_map=cls.device_map,
-            quantization_config=quantization_config,
+            quantization_config=cls.quantization_config,
         )
 
     def test_memory_footprint(self):
@@ -185,6 +185,7 @@ class GPTQTest(unittest.TestCase):
                 device_map=self.device_map,
                 checkpoint_format=checkpoint_format,
                 meta=meta,
+                backend=self.quantization_config.backend,
             )
         elif is_auto_gptq_available():
             from auto_gptq.utils.import_utils import dynamically_import_QuantLinear as hf_select_quant_linear
@@ -197,7 +198,7 @@ class GPTQTest(unittest.TestCase):
                 disable_exllama=not self.use_exllama,
                 disable_exllamav2=True,
             )
-        self.assertTrue(self.quantized_model.model.layers[0].mlp.gate_proj.__class__ == QuantLinear)
+        self.assertEqual(self.quantized_model.model.layers[0].mlp.gate_proj.__class__, QuantLinear)
 
     def check_inference_correctness(self, model):
         r"""
@@ -215,7 +216,7 @@ class GPTQTest(unittest.TestCase):
         self.assertIn(self.tokenizer.decode(output_sequences[0], skip_special_tokens=True), self.EXPECTED_OUTPUTS)
 
     def check_quantized_layers_type(self, model, value):
-        self.assertTrue(model.model.layers[0].mlp.gate_proj.QUANT_TYPE == value)
+        self.assertEqual(model.model.layers[0].mlp.gate_proj.QUANT_TYPE, value)
 
     def test_generate_quality(self):
         """
@@ -355,7 +356,7 @@ class GPTQTestActOrderExllama(unittest.TestCase):
         self.assertIn(self.tokenizer.decode(output_sequences[0], skip_special_tokens=True), self.EXPECTED_OUTPUTS)
 
     def test_quantized_layers_type(self):
-        self.assertTrue(self.quantized_model.model.layers[0].self_attn.k_proj.QUANT_TYPE == "exllama")
+        self.assertEqual(self.quantized_model.model.layers[0].self_attn.k_proj.QUANT_TYPE, "exllama")
 
     def test_generate_quality(self):
         """
@@ -415,10 +416,7 @@ class GPTQTestExllamaV2(unittest.TestCase):
         cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_name, use_fast=True)
 
     def test_quantized_layers_type(self):
-        if is_gptqmodel_available():
-            # gptqmodel.hf_select_quant_linear() now does not select ExllamaV2
-            return
-        self.assertTrue(self.quantized_model.model.layers[0].self_attn.k_proj.QUANT_TYPE == "exllamav2")
+        self.assertEqual(self.quantized_model.model.layers[0].self_attn.k_proj.QUANT_TYPE, "exllama" if is_gptqmodel_available() else "exllamav2")
 
     def check_inference_correctness(self, model):
         """
