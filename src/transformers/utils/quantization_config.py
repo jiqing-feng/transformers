@@ -586,7 +586,7 @@ class GPTQConfig(QuantizationConfigMixin):
             Controls which gptq kernel to be used. Valid values for gptqmodel are `auto`, `auto_trainable` and more. For auto-gptq, only 
             valid value is None and `auto_trainable`. Ref gptqmodel backends: https://github.com/ModelCloud/GPTQModel/blob/main/gptqmodel/utils/backend.py
         use_cuda_fp16 (`bool`, *optional*, defaults to `False`):
-            Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16. Auto-gptq omly.
+            Whether or not to use optimized cuda kernel for fp16 model. Need to have model in fp16. Auto-gptq only.
         model_seqlen (`int`, *optional*):
             The maximum sequence length that the model can take.
         block_name_to_quantize (`str`, *optional*):
