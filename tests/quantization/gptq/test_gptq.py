@@ -265,7 +265,16 @@ class GPTQTest(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
             self.quantized_model.save_pretrained(tmpdirname)
-            quantized_model_from_saved = AutoModelForCausalLM.from_pretrained(tmpdirname, device_map=self.device_map)
+
+            quantization_config = GPTQConfig(
+                bits=self.bits,
+                group_size=self.group_size,
+                desc_act=self.desc_act,
+                sym=self.sym,
+                use_exllama=self.use_exllama,
+            )
+            quantized_model_from_saved = AutoModelForCausalLM.from_pretrained(tmpdirname, device_map=self.device_map,
+                                                                              quantization_config=quantization_config)
             self.check_inference_correctness(quantized_model_from_saved)
 
 
