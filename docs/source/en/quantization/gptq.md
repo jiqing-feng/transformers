@@ -124,7 +124,7 @@ model = AutoModelForCausalLM.from_pretrained("{your_username}/opt-125m-gptq", de
 
 Marlin inference can be activated via the `backend` property in `GPTQConfig` for GPTQModel:
 
-```pycon
+```py
 
 from transformers import AutoModelForCausalLM, GPTQConfig
 
