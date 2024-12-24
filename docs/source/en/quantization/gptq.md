@@ -37,7 +37,7 @@ Both [GPTQModel](https://github.com/ModelCloud/GPTQModel) and [AutoGPTQ](https:/
 * User and developer friendly apis. 
 
 
-[AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ) will likely be deprecated in the future due the lack the continued support for new models and features. 
+[AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ) will likely be deprecated in the future due the lack of continued support for new models and features. 
 
 Before you begin, make sure the following libraries are installed and updated to the latest release:
 
