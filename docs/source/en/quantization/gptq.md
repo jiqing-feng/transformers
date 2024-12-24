@@ -31,7 +31,7 @@ Both [GPTQModel](https://github.com/ModelCloud/GPTQModel) and [AutoGPTQ](https:/
 * Platform support: Validated MacOS Apple Silicone and Windows 11 support.
 * Hardware support: Apple silicone M1+, Intel/AMD CPU, and Intel Datacetner Max + Arc GPUs.
 * IPEX kernel for Intel/AMD accelerated CPU and Intel GPU (Datacenter Max + ARc) support.
-* Updated Marlin kernel from vLLM that is higly optimized for A100
+* Updated Marlin kernel from Neural Magic that is higly optimized for A100
 * Updated Kernels with auto-padding for legacy model support and models with non-uniform in/out-features. 
 * Faster quantization, lower memory usage, and more accurate default quantization via GPTQModel quantization apis.
 * User and developer friendly apis. 
