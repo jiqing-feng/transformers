@@ -52,7 +52,7 @@ Use the table below to help you decide which quantization method to use.
 | [bitsandbytes](./bitsandbytes.md)             | 🟢            | 🟡 <sup>1</sup> |     🟢     | 🟡 <sup>1</sup> | 🔴 <sup>2</sup>                    | 🟡 <sup>1</sup> | 🔴 <sup>1</sup>         | 4 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/bitsandbytes-foundation/bitsandbytes |
 | [compressed-tensors](./compressed_tensors.md) | 🔴                       | 🟢              |     🟢     | 🟢              | 🔴                                 | 🔴              | 🔴                       | 1 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/neuralmagic/compressed-tensors |
 | [EETQ](./eetq.md)                             | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | ?                       | 8              | 🟢                                   | 🟢            | 🟢                      | https://github.com/NetEase-FuXi/EETQ        |
-| GGUF / GGML (llama.cpp)                    | 🟢                       | 🟢              | 🟢        | 🔴              | 🟢                                 | 🔴              | 🔴                       | 1 / 8          | 🔴                                   | [See GGUF section](../gguf)                | [See GGUF section](../gguf)                      | https://github.com/ggerganov/llama.cpp      |
+| [GGUF / GGML (llama.cpp)](../gguf.md)                    | 🟢                       | 🟢              | 🟢        | 🔴              | 🟢                                 | 🔴              | 🔴                       | 1 / 8          | 🔴                                   | 🔴 <sup>6</sup>            | 🔴 <sup>6</sup>                       | https://github.com/ggerganov/llama.cpp      |
 | [GPTQModel](./gptq.md)                        | 🔴                       | 🟢 <sup>3</sup> | 🟢        | 🟢              | 🟢                                 | 🟢 <sup>4</sup>  | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/ModelCloud/GPTQModel        |
 | [AutoGPTQ](./gptq.md)                         | 🔴                       | 🔴              | 🟢        | 🟢              | 🔴                                 | 🔴              | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/AutoGPTQ/AutoGPTQ        |
 | [HIGGS](./higgs.md)                           | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🟢                       | 2 / 4          | 🔴                                   | 🟢            | 🟢                      | https://github.com/HanGuo97/flute           |       
@@ -76,7 +76,7 @@ Use the table below to help you decide which quantization method to use.
 
 <Tip>
 
-**<sup>3</sup>** GPTQModel[CPU] supports full bit range via Torch and 4-bit via IPEX.
+**<sup>3</sup>** GPTQModel[CPU] supports full bit range via Torch and 4-bit via IPEX on Intel/AMD.
 
 </Tip>
 
@@ -92,3 +92,9 @@ Use the table below to help you decide which quantization method to use.
 
 </Tip>
 
+
+<TIP>
+
+**<sup>6</sup>** [See GGUF section](../gguf.md)
+
+</TIP>
