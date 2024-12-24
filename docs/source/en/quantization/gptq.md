@@ -22,7 +22,7 @@ Try GPTQ quantization with PEFT in this [notebook](https://colab.research.google
 
 </Tip>
 
-The [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ) library implements the GPTQ algorithm, a post-training quantization technique where each row of the weight matrix is quantized independently to find a version of the weights that minimizes the error. These weights are quantized to int4, but they're restored to fp16 on the fly during inference. This can save your memory-usage by 4x because the int4 weights are dequantized in a fused kernel rather than a GPU's global memory, and you can also expect a speedup in inference because using a lower bitwidth takes less time to communicate.
+The [AutoGPTQ(development has stopped)](https://github.com/PanQiWei/AutoGPTQ) library implements the GPTQ algorithm, a post-training quantization technique where each row of the weight matrix is quantized independently to find a version of the weights that minimizes the error. These weights are quantized to int4, but they're restored to fp16 on the fly during inference. This can save your memory-usage by 4x because the int4 weights are dequantized in a fused kernel rather than a GPU's global memory, and you can also expect a speedup in inference because using a lower bitwidth takes less time to communicate.
 
 Now, we are going to replace [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ) with [GPTQModel](https://github.com/ModelCloud/GPTQModel), the auto_gptq will be deprecated in the future.
 
