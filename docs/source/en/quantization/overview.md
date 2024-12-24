@@ -47,24 +47,24 @@ Use the table below to help you decide which quantization method to use.
 
 | Quantization method                        | On the fly quantization | CPU             | CUDA GPU | RoCm GPU (AMD)  | Metal (Apple Silicon)              | Intel GPU       | torch.compile() support | Number of bits | Supports fine-tuning (through PEFT) | Serializable with 🤗 transformers | 🤗 transformers support | Link to library                             |
 |--------------------------------------------|-------------------------|-----------------|----------|-----------------|------------------------------------|-----------------|-------------------------|----------------|-------------------------------------|--------------|------------------------|---------------------------------------------|
-| [AQLM](./aqlm)                             | 🔴                       | 🟢              |     🟢     | 🔴              | 🔴                                 | 🔴              | 🟢                      | 1 / 2          | 🟢                                   | 🟢            | 🟢                      | https://github.com/Vahe1994/AQLM            |
-| [AWQ](./awq)                               | 🔴                       | 🟢              | 🟢        | 🟢              | 🔴                                 | 🟢              | ?                       | 4              | 🟢                                   | 🟢            | 🟢                      | https://github.com/casper-hansen/AutoAWQ    |
-| [bitsandbytes](./bitsandbytes)             | 🟢            | 🟡 <sup>1</sup> |     🟢     | 🟡 <sup>1</sup> | 🔴 <sup>2</sup>                    | 🟡 <sup>1</sup> | 🔴    (soon!)          | 4 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/bitsandbytes-foundation/bitsandbytes |
-| [compressed-tensors](./compressed_tensors) | 🔴                       | 🟢              |     🟢     | 🟢              | 🔴                                 | 🔴              | 🔴                       | 1 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/neuralmagic/compressed-tensors |
-| [EETQ](./eetq)                             | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | ?                       | 8              | 🟢                                   | 🟢            | 🟢                      | https://github.com/NetEase-FuXi/EETQ        |
+| [AQLM](./aqlm.md)                             | 🔴                       | 🟢              |     🟢     | 🔴              | 🔴                                 | 🔴              | 🟢                      | 1 / 2          | 🟢                                   | 🟢            | 🟢                      | https://github.com/Vahe1994/AQLM            |
+| [AWQ](./awq.md)                               | 🔴                       | 🟢              | 🟢        | 🟢              | 🔴                                 | 🟢              | ?                       | 4              | 🟢                                   | 🟢            | 🟢                      | https://github.com/casper-hansen/AutoAWQ    |
+| [bitsandbytes](./bitsandbytes.md)             | 🟢            | 🟡 <sup>1</sup> |     🟢     | 🟡 <sup>1</sup> | 🔴 <sup>2</sup>                    | 🟡 <sup>1</sup> | 🔴    (soon!)          | 4 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/bitsandbytes-foundation/bitsandbytes |
+| [compressed-tensors](./compressed_tensors.md) | 🔴                       | 🟢              |     🟢     | 🟢              | 🔴                                 | 🔴              | 🔴                       | 1 / 8          | 🟢                                   | 🟢            | 🟢                      | https://github.com/neuralmagic/compressed-tensors |
+| [EETQ](./eetq.md)                             | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | ?                       | 8              | 🟢                                   | 🟢            | 🟢                      | https://github.com/NetEase-FuXi/EETQ        |
 | GGUF / GGML (llama.cpp)                    | 🟢                       | 🟢              | 🟢        | 🔴              | 🟢                                 | 🔴              | 🔴                       | 1 / 8          | 🔴                                   | [See GGUF section](../gguf)                | [See GGUF section](../gguf)                      | https://github.com/ggerganov/llama.cpp      |
-| [GPTQModel](./gptq)                        | 🔴                       | 🟢 <sup>3</sup> | 🟢        | 🟢              | 🔴                                 | 🟢<sup>3</sup>  | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/ModelCloud/GPTQModel        |
-| [AutoGPTQ](./gptq)                         | 🔴                       | 🔴              | 🟢        | 🟢              | 🔴                                 | 🔴              | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/AutoGPTQ/AutoGPTQ        |
-| [HIGGS](./higgs)                           | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🟢                       | 2 / 4          | 🔴                                   | 🟢            | 🟢                      | https://github.com/HanGuo97/flute           |       
-| [HQQ](./hqq)                               | 🟢                       | 🟢              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🟢                       | 1 / 8          | 🟢                                   | 🔴            | 🟢                      | https://github.com/mobiusml/hqq/            |
-| [optimum-quanto](./quanto)                 | 🟢                       | 🟢              | 🟢        | 🔴              | 🟢                                 | 🔴              | 🟢                       | 2 / 4 / 8      | 🔴                                   | 🔴            | 🟢                      | https://github.com/huggingface/optimum-quanto       |
+| [GPTQModel](./gptq.md)                        | 🔴                       | 🟢 <sup>3</sup> | 🟢        | 🟢              | 🔴                                 | 🟢 <sup>3</sup>  | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/ModelCloud/GPTQModel        |
+| [AutoGPTQ](./gptq.md)                         | 🔴                       | 🔴              | 🟢        | 🟢              | 🔴                                 | 🔴              | 🔴                       | 2 / 3 / 4 / 8  | 🟢                                   | 🟢            | 🟢                      | https://github.com/AutoGPTQ/AutoGPTQ        |
+| [HIGGS](./higgs.md)                           | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🟢                       | 2 / 4          | 🔴                                   | 🟢            | 🟢                      | https://github.com/HanGuo97/flute           |       
+| [HQQ](./hqq.md)                               | 🟢                       | 🟢              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🟢                       | 1 / 8          | 🟢                                   | 🔴            | 🟢                      | https://github.com/mobiusml/hqq/            |
+| [optimum-quanto](./quanto.md)                 | 🟢                       | 🟢              | 🟢        | 🔴              | 🟢                                 | 🔴              | 🟢                       | 2 / 4 / 8      | 🔴                                   | 🔴            | 🟢                      | https://github.com/huggingface/optimum-quanto       |
 | [FBGEMM_FP8](./fbgemm_fp8.md)              | 🟢                       | 🔴              | 🟢        | 🔴              | 🔴                                 | 🔴              | 🔴                        | 8              | 🔴                                   | 🟢            | 🟢                      | https://github.com/pytorch/FBGEMM       |
-| [torchao](./torchao.md)                    | 🟢                       |                 | 🟢        | 🔴              | partial support (int4 weight only) | 🔴              |                       | 4 / 8          |                                   | 🟢🔴           | 🟢                      | https://github.com/pytorch/ao       |
-| [VPTQ](./vptq)                             | 🔴                       | 🔴              |     🟢     | 🟡              | 🔴                                 | 🔴              | 🟢                      | 1 / 8          | 🔴                                   | 🟢            | 🟢                      | https://github.com/microsoft/VPTQ            |
+| [torchao](./torchao.md)                    | 🟢                       |                 | 🟢        | 🔴              | 🟡 <sup>4</sup> | 🔴              |                       | 4 / 8          |                                   | 🟢🔴           | 🟢                      | https://github.com/pytorch/ao       |
+| [VPTQ](./vptq.md)                             | 🔴                       | 🔴              |     🟢     | 🟡              | 🔴                                 | 🔴              | 🟢                      | 1 / 8          | 🔴                                   | 🟢            | 🟢                      | https://github.com/microsoft/VPTQ            |
 
 <Tip>
 
-\* bitsandbytes is being refactored to support multiple backends beyond CUDA. Currently, ROCm (AMD GPU) and Intel CPU implementations are mature, with Intel XPU in progress and Apple Silicon support expected by Q4/Q1. For installation instructions and the latest backend updates, visit [this link](https://huggingface.co/docs/bitsandbytes/main/en/installation#multi-backend).
+**<sup>1</sup>** bitsandbytes is being refactored to support multiple backends beyond CUDA. Currently, ROCm (AMD GPU) and Intel CPU implementations are mature, with Intel XPU in progress and Apple Silicon support expected by Q4/Q1. For installation instructions and the latest backend updates, visit [this link](https://huggingface.co/docs/bitsandbytes/main/en/installation#multi-backend).
 
 We value your feedback to help identify bugs before the full release! Check out [these docs](https://huggingface.co/docs/bitsandbytes/main/en/non_cuda_backends) for more details and feedback links.
 
@@ -72,12 +72,18 @@ We value your feedback to help identify bugs before the full release! Check out 
 
 <Tip>
 
-\** bitsandbytes is seeking contributors to help develop and lead the Apple Silicon backend. Interested? Contact them directly via their repo. Stipends may be available through sponsorships.
+**<sup>2</sup>** bitsandbytes is seeking contributors to help develop and lead the Apple Silicon backend. Interested? Contact them directly via their repo. Stipends may be available through sponsorships.
 
 </Tip>
 
 <Tip>
 
-\*** GPTQModel only supports 4-bit on Intel CPU / GPU.
+**<sup>3</sup>** GPTQModel only supports 4-bit on Intel CPU / GPU.
+
+</Tip>
+
+<Tip>
+
+**<sup>4</sup>** torchao only supports int4 weight on Metal (Apple Silicon).
 
 </Tip>
