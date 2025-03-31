@@ -226,7 +226,7 @@ class Bnb8BitHfQuantizer(HfQuantizer):
         new_value = bnb.nn.Int8Params(new_value, requires_grad=False, **kwargs).to(target_device)
 
         module._parameters[tensor_name] = new_value
-        if fp16_statistics is not None:
+        if fp16_statistics is not None and fp16_statistics.device.type != "meta":
             setattr(module.weight, "SCB", fp16_statistics.to(target_device))
             if unexpected_keys is not None:
                 unexpected_keys.remove(fp16_statistics_key)
