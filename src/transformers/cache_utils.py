@@ -13,7 +13,7 @@ from transformers.pytorch_utils import is_torch_greater_or_equal_than_2_6
 
 from .configuration_utils import PretrainedConfig
 from .utils import is_hqq_available, is_optimum_quanto_available, is_torch_greater_or_equal, logging
-
+from .utils.metrics import attach_tracer, traced
 
 if is_hqq_available():
     from hqq.core.quantize import Quantizer as HQQQuantizer
@@ -1076,6 +1076,7 @@ class SinkCache(Cache):
         )
 
 
+@attach_tracer()
 class StaticCache(Cache):
     """
     Static Cache class to be used with `torch.compile(model)` and `torch.export()`.
@@ -1098,10 +1099,6 @@ class StaticCache(Cache):
             Mapping between the layers and its device. This is required when you are manually initializing the cache
             and the model is split between different gpus. You can know which layers mapped to which device by
             checking the associated device_map: `model.hf_device_map`.
-        tp_size (`Optional[int]`, *optional*):
-            The tensor parallel size of the model. This is used to adjust the number of key/value heads in the cache
-            if the model is using tensor parallelism. If not provided, it defaults to `None`, which means that the
-            number of key/value heads will not be adjusted.
 
 
     Example:
@@ -1134,7 +1131,6 @@ class StaticCache(Cache):
         device: Union[torch.device, str, None] = None,
         dtype: torch.dtype = torch.float32,
         layer_device_map: Optional[dict[int, Union[str, torch.device, int]]] = None,
-        tp_size: Optional[int] = None,
     ) -> None:
         super().__init__()
         self.max_batch_size = max_batch_size
@@ -1144,27 +1140,30 @@ class StaticCache(Cache):
         self.head_dim = getattr(config, "head_dim", None) or config.hidden_size // config.num_attention_heads
 
         self._dtype = dtype
+        self.device = device
+        self.layer_device_map = layer_device_map
+        self.num_hidden_layers = config.num_hidden_layers
         self.num_key_value_heads = (
             config.num_attention_heads
             if getattr(config, "num_key_value_heads", None) is None
             else config.num_key_value_heads
         )
-        if tp_size is not None and tp_size > 1:
-            if self.num_key_value_heads % tp_size != 0:
-                raise ValueError(
-                    f"Number of key value heads {self.num_key_value_heads} must be divisible by tensor parallel size {tp_size}."
-                )
-            # If the model is using tensor parallelism, we need to adjust the number of heads accordingly.
-            self.num_key_value_heads //= tp_size
-
         self.key_cache: list[torch.Tensor] = []
         self.value_cache: list[torch.Tensor] = []
+
+    @torch.compiler.disable
+    def initialise_cache_layer(self, layer_idx, key_states):
+        if len(self.key_cache) > layer_idx:
+            return
+
+        self.num_key_value_heads = key_states.shape[1]
+        device = key_states.device
         # Note: There will be significant perf decrease if switching to use 5D tensors instead.
         cache_shape = (self.max_batch_size, self.num_key_value_heads, self.max_cache_len, self.head_dim)
         device = torch.device(device) if device is not None else None
-        for idx in range(config.num_hidden_layers):
-            if layer_device_map is not None:
-                layer_device = layer_device_map[idx]
+        for idx in range(self.num_hidden_layers):
+            if self.layer_device_map is not None:
+                layer_device = self.layer_device_map[idx]
             else:
                 layer_device = device
             new_layer_key_cache = torch.zeros(cache_shape, dtype=self._dtype, device=layer_device)
@@ -1176,6 +1175,7 @@ class StaticCache(Cache):
             self.key_cache.append(new_layer_key_cache)
             self.value_cache.append(new_layer_value_cache)
 
+    @traced
     def update(
         self,
         key_states: torch.Tensor,
@@ -1201,6 +1201,8 @@ class StaticCache(Cache):
         Return:
             A tuple containing the updated key and value states.
         """
+        self.initialise_cache_layer(layer_idx, key_states)
+
         if cache_kwargs is None:
             cache_kwargs = {}
 
