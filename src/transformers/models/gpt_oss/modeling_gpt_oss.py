@@ -63,7 +63,9 @@ class GptOssRMSNorm(nn.Module):
     def extra_repr(self):
         return f"{tuple(self.weight.shape)}, eps={self.variance_epsilon}"
 
-
+import torch.distributed as dist
+rank = dist.get_rank()
+world_size = dist.get_world_size()
 class GptOssExperts(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -103,7 +105,13 @@ class GptOssExperts(nn.Module):
                 # we sum on the top_k and on the sequence length to get which experts
                 # are hit this time around
                 expert_hit = torch.greater(expert_mask.sum(dim=(-1, -2)), 0).nonzero()
-            for expert_idx in expert_hit[:]:
+
+            remainder = expert_hit.shape[0] % world_size
+            groups = expert_hit.shape[0] // world_size
+            start = rank * groups + min(rank, remainder)
+            end = start + groups + (1 if rank < remainder else 0)
+
+            for expert_idx in expert_hit[start:end]:
                 # expert_idx only have 1 element, so we can use scale for fast indexing
                 expert_idx = expert_idx[0]
                 with torch.no_grad():
@@ -118,6 +126,7 @@ class GptOssExperts(nn.Module):
                 out = gated_output @ self.down_proj[expert_idx] + self.down_proj_bias[expert_idx]
                 weighted_output = out[0] * routing_weights[token_idx, expert_idx, None]
                 next_states.index_add_(0, token_idx, weighted_output.to(hidden_states.dtype))
+            dist.all_reduce(next_states, op=dist.ReduceOp.SUM)
             next_states = next_states.view(batch_size, -1, self.hidden_size)
         else:
             hidden_states = hidden_states.repeat(num_experts, 1)
