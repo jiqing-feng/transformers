@@ -61,6 +61,10 @@ def get_device_and_memory_breakdown() -> tuple[torch.device, int, int, int]:
             allocated_memory = psutil.Process().memory_info().rss
             reserved_memory = allocated_memory
         else:
+            logger.error(
+                "Cannot get memory breakdown on CPU without psutil: returning 0 for all memory values. Please install "
+                "psutil to get an actual memory breakdown."
+            )
             total_memory = 0
             reserved_memory = 0
             allocated_memory = 0
