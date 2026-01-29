@@ -260,9 +260,7 @@ class ContinuousBatchProcessor:
         # Cuda graphs for the generation step
         self.q_padding_intervals = q_padding_intervals
         self.kv_padding_intervals = kv_padding_intervals
-        self._graphs: dict[tuple[int, int], torch.cuda.CUDAGraph] | None = (
-            {} if use_cuda_graph and torch.cuda.is_available() else None
-        )
+        self._graphs: dict[tuple[int, int], torch.cuda.CUDAGraph] | None = {} if use_cuda_graph else None
         # Compile-related arguments
         self.compile_config: CompileConfig | None = getattr(generation_config, "compile_config", None)
         self._forward_process_and_sample_is_compiled = False
@@ -932,6 +930,11 @@ class ContinuousBatchingManager:
         If none of the above criteria are met, we use a default heuristic based on the attention implementation: we turn
         on cuda graphs if and only if no attention mask is needed.
         """
+        # If cuda is not available, we cannot use cuda graphs
+        if not torch.cuda.is_available():
+            if use_cuda_graph:
+                logger.warning(f"use_cuda_graph is True but {torch.cuda.is_available() = }: turning off cuda graphs.")
+            return False
         # If use_cuda_graph is specified, we follow the user's choice
         if use_cuda_graph is not None:
             return use_cuda_graph
