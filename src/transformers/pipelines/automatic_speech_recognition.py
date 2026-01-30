@@ -480,7 +480,6 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
                         inputs,
                         sampling_rate=self.feature_extractor.sampling_rate,
                         return_tensors="pt",
-                        return_token_timestamps=True,
                         return_attention_mask=True,
                     )
                 else:
