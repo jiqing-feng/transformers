@@ -152,6 +152,12 @@ try:
                     layer_name="MegaBlocksMoeMLP",
                 )
             },
+            "cpu": {
+                Mode.INFERENCE: LayerRepository(
+                    repo_id="kernels-community/megablocks",
+                    layer_name="MegaBlocksMoeMLP",
+                )
+            },
         },
         "FastGELU": {
             "cuda": {
