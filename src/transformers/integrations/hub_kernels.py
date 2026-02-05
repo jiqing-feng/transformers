@@ -170,7 +170,7 @@ try:
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
                     repo_id="kernels-community/activation",
                     layer_name="FastGELU",
-                    version=">=0.0.4,<0.1.0",
+                    version=1,
                 )
             }
         },
@@ -179,7 +179,7 @@ try:
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
                     repo_id="kernels-community/activation",
                     layer_name="QuickGELU",
-                    version=">=0.0.4,<0.1.0",
+                    version=1,
                 )
             }
         },
@@ -188,28 +188,28 @@ try:
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
                     repo_id="kernels-community/activation",
                     layer_name="NewGELU",
-                    version=">=0.0.4,<0.1.0",
+                    version=1,
                 )
             }
         },
         "SiLU": {
             "cuda": {
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
-                    repo_id="kernels-community/activation", layer_name="Silu", version=">=0.1.0"
+                    repo_id="kernels-community/activation", layer_name="Silu", version=1
                 )
             }
         },
         "GeLU": {
             "cuda": {
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
-                    repo_id="kernels-community/activation", layer_name="Gelu", version=">=0.1.0"
+                    repo_id="kernels-community/activation", layer_name="Gelu", version=1
                 )
             }
         },
         "GeluTanh": {
             "cuda": {
                 Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
-                    repo_id="kernels-community/activation", layer_name="GeluTanh", version=">=0.1.0"
+                    repo_id="kernels-community/activation", layer_name="GeluTanh", version=1
                 )
             }
         },
