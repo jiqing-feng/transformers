@@ -172,6 +172,13 @@ class Mxfp4HfQuantizer(HfQuantizer):
             )
             self.quantization_config.dequantize = True
 
+        if not use_kernels and device.type in ["cpu"]:
+            logger.warning_once(
+                "MXFP4 inference on CPU requires use_kernels=True, but use_kernels is disabled. "
+                "We will dequantize the model to bf16. To run MXFP4 natively on CPU, please set use_kernels=True."
+            )
+            self.quantization_config.dequantize = True
+
         self.modules_to_not_convert = self.get_modules_to_not_convert(
             model, self.quantization_config.modules_to_not_convert, model._keep_in_fp32_modules
         )
