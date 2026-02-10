@@ -429,10 +429,6 @@ if __name__ == "__main__":
     def test_model_outputs_distributed(self, quantized, model, kernels, attn_impl, mode):
         if torch_device == "cpu":
             self.skipTest("Skip TP on CPU until verified.")
-            # if attn_impl == "kernels-community/vllm-flash-attn3":
-            #     self.skipTest("vllm-flash-attn3 is not supported on CPU.")
-            # if kernels and mode == "train":
-            #     self.skipTest("CPU kernels only support inference.")
 
         if torch_device == "xpu" and attn_impl == "kernels-community/vllm-flash-attn3":
             self.skipTest("flash attention 3 is not supported on XPU yet.")
