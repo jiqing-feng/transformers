@@ -1186,11 +1186,6 @@ class UMT5EncoderModel(UMT5PreTrainedModel):
         self.shared = new_embeddings
         self.encoder.set_input_embeddings(new_embeddings)
 
-    def tie_weights(self, missing_keys=None, recompute_mapping=True):
-        # Always tie encoder.embed_tokens to shared, regardless of tie_word_embeddings config
-        # This is required because UMT5EncoderModel's architecture expects them to be the same
-        self.encoder.embed_tokens.weight = self.shared.weight
-
     @auto_docstring
     # Copied from transformers.models.t5.modeling_t5.T5EncoderModel.forward with T5->UMT5, google-t5/t5-small->google/umt5-small, t5#training->umt5#training
     def forward(
