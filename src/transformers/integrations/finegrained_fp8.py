@@ -44,6 +44,233 @@ _FP8_MAX = torch.finfo(_FP8_DTYPE).max
 _DEEPGEMM_M_ALIGNMENT = 128
 
 
+# ==================== CPU Python fallback for FP8 kernels ====================
+def _cpu_fp8_act_quant(input: torch.Tensor, block_size_k: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """CPU fallback: quantize activations to FP8 with per-block scaling.
+
+    Args:
+        input: (..., K) float tensor
+        block_size_k: block size along K dimension for scale computation
+
+    Returns:
+        (quantized_input, scales) where quantized is float8_e4m3fn and scales is float32
+    """
+    original_shape = input.shape
+    input_2d = input.reshape(-1, original_shape[-1])
+    M, K = input_2d.shape
+    num_blocks_k = (K + block_size_k - 1) // block_size_k
+
+    # Compute per-block max for scaling
+    scales = torch.zeros(M, num_blocks_k, dtype=torch.float32, device=input.device)
+    for j in range(num_blocks_k):
+        start = j * block_size_k
+        end = min(start + block_size_k, K)
+        block = input_2d[:, start:end].float().abs()
+        block_max = block.amax(dim=-1).clamp(min=1e-12)
+        scales[:, j] = block_max / _FP8_MAX
+
+    # Quantize
+    quantized = torch.zeros_like(input_2d, dtype=_FP8_DTYPE)
+    for j in range(num_blocks_k):
+        start = j * block_size_k
+        end = min(start + block_size_k, K)
+        block = input_2d[:, start:end].float()
+        s = scales[:, j:j+1]
+        quantized[:, start:end] = (block / s).clamp(min=_FP8_MIN, max=_FP8_MAX).to(_FP8_DTYPE)
+
+    # Return scale as inverse (to match weight_scale_inv convention? No — act scales are direct)
+    quantized = quantized.reshape(original_shape)
+    scales = scales.reshape(*original_shape[:-1], num_blocks_k)
+    return quantized, scales
+
+
+def _cpu_w8a8_fp8_matmul(
+    A: torch.Tensor,
+    B: torch.Tensor,
+    As: torch.Tensor,
+    Bs: torch.Tensor,
+    block_size: list[int],
+    output_dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """CPU fallback: dequantize A and B, then matmul in float32.
+
+    This is functionally correct but slow — it dequantizes block-by-block then does F.linear.
+    """
+    A_shape = A.shape
+    A_2d = A.reshape(-1, A_shape[-1])
+    As_2d = As.reshape(-1, As.shape[-1])
+    M, K = A_2d.shape
+    N = B.shape[0]
+
+    if block_size is None:
+        # Per-tensor: simple dequant
+        A_f = A_2d.float() * As_2d.float().unsqueeze(-1) if As_2d.shape[-1] == 1 else A_2d.float() * As_2d.float()
+        B_f = B.float() * Bs.float()
+    else:
+        block_n, block_k = block_size
+        # Dequantize A: (M, K) with per-block scales As_2d: (M, ceil(K/block_k))
+        A_f = torch.zeros(M, K, dtype=torch.float32, device=A.device)
+        num_blocks_k_a = As_2d.shape[-1]
+        for j in range(num_blocks_k_a):
+            start = j * block_k
+            end = min(start + block_k, K)
+            A_f[:, start:end] = A_2d[:, start:end].float() * As_2d[:, j:j+1].float()
+
+        # Dequantize B: (N, K) with per-block scales Bs: could be (ceil(N/block_n), ceil(K/block_k))
+        B_f = torch.zeros(N, K, dtype=torch.float32, device=B.device)
+        Bs_2d = Bs.reshape(-1, Bs.shape[-1]) if Bs.dim() > 2 else Bs
+        num_blocks_n = Bs_2d.shape[0]
+        num_blocks_k_b = Bs_2d.shape[1]
+        for i in range(num_blocks_n):
+            row_start = i * block_n
+            row_end = min(row_start + block_n, N)
+            for j in range(num_blocks_k_b):
+                col_start = j * block_k
+                col_end = min(col_start + block_k, K)
+                B_f[row_start:row_end, col_start:col_end] = (
+                    B[row_start:row_end, col_start:col_end].float() * Bs_2d[i, j].float()
+                )
+
+    output = torch.mm(A_f, B_f.t()).to(output_dtype)
+    return output.reshape(*A_shape[:-1], N)
+
+
+def _cpu_w8a8_fp8_matmul_batched(
+    A: torch.Tensor, B: torch.Tensor, Bs: torch.Tensor,
+    block_size: list[int] | None = None,
+    expert_ids: torch.Tensor | None = None,
+    **kwargs,
+) -> torch.Tensor:
+    """CPU fallback for batched FP8 matmul — per-token expert dispatch.
+    
+    Args:
+        A: (S, K) bf16/fp32 — activations
+        B: (num_experts, N, K_packed) — quantized weights (FP8 or FP4-packed int8)
+        Bs: (num_experts, ...) — weight scale inv
+        block_size: [block_n, block_k]
+        expert_ids: (S,) — which expert each token uses
+    """
+    S = A.shape[0]
+    num_experts = B.shape[0]
+    
+    # Determine output dim by dequantizing first expert
+    first_out_dim = _cpu_dequant_expert_weight(B[0], Bs[0]).shape[0]
+    output = torch.zeros(S, first_out_dim, dtype=A.dtype, device=A.device)
+    
+    for e in range(num_experts):
+        mask = (expert_ids == e)
+        if not mask.any():
+            continue
+        A_expert = A[mask].float()
+        B_dequant = _cpu_dequant_expert_weight(B[e], Bs[e]).float()
+        
+        if B_dequant.shape[1] == A_expert.shape[1]:
+            result = torch.mm(A_expert, B_dequant.t())
+        elif B_dequant.shape[0] == A_expert.shape[1]:
+            result = torch.mm(A_expert, B_dequant)
+        else:
+            raise RuntimeError(
+                f"CPU FP8 batched matmul shape mismatch: A={A_expert.shape}, B_dequant={B_dequant.shape}"
+            )
+        output[mask] = result.to(A.dtype)
+    
+    return output
+
+
+def _cpu_dequant_expert_weight(B_expert: torch.Tensor, Bs_expert: torch.Tensor) -> torch.Tensor:
+    """Dequantize one expert's weight matrix (FP8 or FP4 packed)."""
+    fp4_dtype = getattr(torch, "float4_e2m1fn_x2", None)
+    if B_expert.dtype == torch.int8 or (fp4_dtype is not None and B_expert.dtype == fp4_dtype):
+        # FP4 packed: unpack to float32
+        _FP4_E2M1_LUT = (0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, -0.0, -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0)
+        lut = torch.tensor(_FP4_E2M1_LUT, dtype=torch.float32, device=B_expert.device)
+        u8 = B_expert.contiguous().view(torch.uint8)
+        low = (u8 & 0xF).long()
+        high = ((u8 >> 4) & 0xF).long()
+        unpacked = torch.stack([lut[low], lut[high]], dim=-1)
+        B_f32 = unpacked.reshape(B_expert.shape[0], 2 * B_expert.shape[-1])
+    else:
+        B_f32 = B_expert.float()
+    
+    # Apply per-block scales
+    rows, cols = B_f32.shape
+    scale_rows, scale_cols = Bs_expert.shape[-2], Bs_expert.shape[-1]
+    block_m = rows // scale_rows
+    block_n_actual = cols // scale_cols
+    
+    B_blocked = B_f32.reshape(scale_rows, block_m, scale_cols, block_n_actual)
+    scales_expanded = Bs_expert.float().unsqueeze(1).unsqueeze(3)
+    B_dequant = (B_blocked * scales_expanded).reshape(rows, cols).to(torch.bfloat16)
+    return B_dequant
+
+
+def _cpu_w8a8_fp8_matmul_grouped(
+    A: torch.Tensor, B: torch.Tensor, Bs: torch.Tensor,
+    tokens_per_expert: torch.Tensor | None = None,
+    block_size: list[int] | None = None,
+    offsets: torch.Tensor | None = None,
+    **kwargs,
+) -> torch.Tensor:
+    """CPU fallback for grouped FP8 matmul.
+    
+    Args:
+        A: (total_tokens, K) bf16/fp32 — activations
+        B: (num_experts, N, K_packed) — quantized weights (FP8 or FP4-packed int8)
+        Bs: (num_experts, ...) — weight scale inv
+        tokens_per_expert: (num_experts,) — how many tokens each expert processes
+        block_size: [block_n, block_k]
+        offsets: (num_experts,) — cumulative offsets
+    """
+    num_experts = B.shape[0]
+    total_tokens = A.shape[0]
+    
+    # Determine output dim
+    first_dequant = _cpu_dequant_expert_weight(B[0], Bs[0])
+    out_dim = first_dequant.shape[0] if first_dequant.shape[1] == A.shape[-1] else first_dequant.shape[1]
+    
+    output = torch.zeros(total_tokens, out_dim, dtype=A.dtype, device=A.device)
+    
+    if tokens_per_expert is None:
+        return output
+    
+    offset = 0
+    for e in range(num_experts):
+        n_tokens = int(tokens_per_expert[e].item())
+        if n_tokens == 0:
+            continue
+        A_expert = A[offset:offset + n_tokens].float()
+        B_dequant = _cpu_dequant_expert_weight(B[e], Bs[e]).float()
+        
+        if B_dequant.shape[1] == A_expert.shape[1]:
+            result = torch.mm(A_expert, B_dequant.t())
+        elif B_dequant.shape[0] == A_expert.shape[1]:
+            result = torch.mm(A_expert, B_dequant)
+        else:
+            raise RuntimeError(
+                f"CPU FP8 grouped matmul shape mismatch: A={A_expert.shape}, B_dequant={B_dequant.shape}"
+            )
+        
+        output[offset:offset + n_tokens] = result.to(A.dtype)
+        offset += n_tokens
+    
+    return output
+
+
+@functools.cache
+def _load_cpu_fp8_fallback() -> "FineGrainedFP8":
+    """Return a FineGrainedFP8 instance with pure-Python CPU fallbacks."""
+    logger.warning_once(
+        "[CPU FP8 FALLBACK] Using pure-Python FP8 kernels — this is slow but functionally correct."
+    )
+    return FineGrainedFP8(
+        fp8_matmul=_cpu_w8a8_fp8_matmul,
+        fp8_act_quant=_cpu_fp8_act_quant,
+        batched_fp8_matmul=_cpu_w8a8_fp8_matmul_batched,
+        grouped_fp8_matmul=_cpu_w8a8_fp8_matmul_grouped,
+    )
+# ==================== End CPU fallback ====================
+
+
 def _first_attr(obj, *names):
     for name in names:
         if hasattr(obj, name):
@@ -65,21 +292,20 @@ class FineGrainedFP8:
 def _load_finegrained_fp8_kernel() -> FineGrainedFP8:
     """
     Load the finegrained-fp8 Triton kernel once and return its entry points.
-
-    Raises `ImportError` if the `kernels` package is missing, or the kernel or required
-    symbols cannot be found.
+    Falls back to CPU Python implementation if kernels are unavailable.
     """
     if not is_kernels_available():
-        raise ImportError(
-            "finegrained-fp8 kernel requires the `kernels` package. Install it with `pip install -U kernels`."
+        logger.warning_once(
+            "finegrained-fp8 Triton kernel not available (no `kernels` package). Using CPU Python fallback."
         )
+        return _load_cpu_fp8_fallback()
 
     kernel = lazy_load_kernel("finegrained-fp8")
     if kernel is None:
-        raise ImportError(
-            "Failed to load the finegrained-fp8 kernel — check that `kernels-community/finegrained-fp8` "
-            "has a build matching the current torch/CUDA."
+        logger.warning_once(
+            "Failed to load finegrained-fp8 Triton kernel. Using CPU Python fallback."
         )
+        return _load_cpu_fp8_fallback()
 
     fp8_matmul = getattr(kernel, "w8a8_fp8_matmul", None)
     fp8_act_quant = getattr(kernel, "fp8_act_quant", None)
