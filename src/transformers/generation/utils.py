@@ -1802,6 +1802,19 @@ class GenerationMixin(ContinuousMixin):
                 "offloading": offload_cache,
             }
             self._cache = StaticCache(**self_attention_cache_kwargs)
+            # Pre-initialize all cache layers to avoid recompile cascade with torch.compile.
+            # Without this, each layer's lazy initialization changes `is_initialized` from False
+            # to True, causing dynamo to recompile for every layer until it hits the cache limit
+            # and falls back to eager entirely.
+            text_config = self_attention_cache_kwargs["config"]
+            head_dim = getattr(text_config, "head_dim", text_config.hidden_size // text_config.num_attention_heads)
+            self._cache.early_initialization(
+                batch_size=batch_size,
+                num_heads=text_config.num_key_value_heads,
+                head_dim=head_dim,
+                dtype=self.dtype,
+                device=self.device,
+            )
             if self.config.is_encoder_decoder:
                 cross_attention_cache_kwargs = {
                     "config": self.config.get_text_config(decoder=True),

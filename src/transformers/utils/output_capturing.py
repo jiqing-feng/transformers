@@ -223,6 +223,16 @@ def capture_outputs(func=None, *, tie_last_hidden_states=True):
             # Pop it so that internal modules always return a dict even if False is requested
             return_dict = kwargs.pop("return_dict", getattr(self.config, "return_dict", True))
 
+            # Fast path: skip output capturing when no outputs are explicitly requested.
+            # This avoids graph breaks from dict iteration that prevents torch.compile optimization.
+            output_hidden_states = kwargs.get("output_hidden_states", getattr(self.config, "output_hidden_states", False))
+            output_attentions = kwargs.get("output_attentions", getattr(self.config, "output_attentions", False))
+            if not output_hidden_states and not output_attentions:
+                outputs = func(self, *args, **kwargs)
+                if return_dict is False:
+                    outputs = outputs.to_tuple()
+                return outputs
+
             # _can_record_outputs is None by default
             capturable_flags = _CAN_RECORD_REGISTRY.get(str(self.__class__)) or {}
             recordable_keys = {
