@@ -195,6 +195,12 @@ def add_offsets_to_mask_function(mask_function: Callable, q_offset: int, kv_offs
     This function adds the correct offsets to the `q_idx` and `kv_idx` as the torch API can only accept lengths,
     not start and end indices.
     """
+    # Offsets may be 1-element tensors (e.g. a static cache's `cumulative_length`). Reshape them to 0-dim so the
+    # vmapped mask stays element-wise scalar; otherwise flex's `create_block_mask` gets a 5D mask and fails.
+    if isinstance(q_offset, torch.Tensor):
+        q_offset = q_offset.reshape(())
+    if isinstance(kv_offset, torch.Tensor):
+        kv_offset = kv_offset.reshape(())
 
     def inner_mask(batch_idx: int, head_idx: int, q_idx: int, kv_idx: int) -> bool:
         return mask_function(batch_idx, head_idx, q_idx + q_offset, kv_idx + kv_offset)
