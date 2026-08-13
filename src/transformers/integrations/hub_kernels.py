@@ -302,6 +302,18 @@ if is_kernels_available():
                         version=3,
                     ),
                 },
+                "xpu": {
+                    Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerSwiGLUMLP",
+                        version=3,
+                    ),
+                    Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerTiledSwiGLUMLP",
+                        version=3,
+                    ),
+                },
             },
             "GeGLUMLP": {
                 "cuda": {
@@ -316,9 +328,28 @@ if is_kernels_available():
                         version=3,
                     ),
                 },
+                "xpu": {
+                    Mode.INFERENCE | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerGEGLUMLP",
+                        version=3,
+                    ),
+                    Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerTiledGEGLUMLP",
+                        version=3,
+                    ),
+                },
             },
             "Linear": {
                 "cuda": {
+                    Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerLinear",
+                        version=3,
+                    ),
+                },
+                "xpu": {
                     Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
                         repo_id="kernels-community/liger-kernels",
                         layer_name="LigerLinear",
@@ -353,11 +384,16 @@ if is_kernels_available():
                     ),
                 },
                 "xpu": {
+                    Mode.TRAINING: LayerRepository(
+                        repo_id="kernels-community/liger-kernels",
+                        layer_name="LigerRMSNorm",
+                        version=3,
+                    ),
                     Mode.INFERENCE: LayerRepository(
                         repo_id="kernels-community/rmsnorm",
                         layer_name="RMSNorm",
                         version=1,
-                    )
+                    ),
                 },
                 "mps": {
                     Mode.INFERENCE: LayerRepository(
@@ -498,6 +534,11 @@ if is_kernels_available():
             },
             "ForCausalLMLoss": {
                 "cuda": {
+                    Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
+                        repo_id="kernels-community/liger-kernels", layer_name="LigerForCausalLMLossLayer", version=3
+                    ),
+                },
+                "xpu": {
                     Mode.TRAINING | Mode.TORCH_COMPILE: LayerRepository(
                         repo_id="kernels-community/liger-kernels", layer_name="LigerForCausalLMLossLayer", version=3
                     ),
