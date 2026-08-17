@@ -618,7 +618,9 @@ class CpmAntModel(CpmAntPreTrainedModel):
         )
         batch, seq_length = input_ids.size()
         segment = torch.cat((torch.zeros(batch, self.prompt_length, dtype=dtype, device=device), segment), dim=1)
-        context = torch.full((batch, seq_length), 1, dtype=dtype, device=device)
+        # Only the soft prompt is bidirectional context; real tokens are causal.
+        context = torch.zeros((batch, seq_length), dtype=dtype, device=device)
+        context[:, : self.prompt_length] = 1
         position = torch.arange(seq_length, dtype=dtype, device=device).repeat(batch, 1)
         span = torch.full((batch, seq_length), 0, dtype=dtype, device=device)
 
