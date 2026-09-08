@@ -271,6 +271,7 @@ class Cosmos3OmniForConditionalGenerationIntegrationTest(unittest.TestCase):
         expected_decoded_texts = Expectations({
             ("cuda", None): 'user\nWhat kind of dog is this?\nassistant\nThe dog in the image appears to be a Labrador Retriever. It has a light brown or golden coat, which is characteristic of this breed. Labrador Retrievers are known for their friendly demeanor and',
             ("xpu", None): 'user\nWhat kind of dog is this?\nassistant\nThe dog in the image appears to be a Labrador Retriever. It has a light brown or golden coat, which is characteristic of this breed. Labrador Retrievers are known for their friendly demeanor and',
+            ("xpu", 5): 'user\nWhat kind of dog is this?\nassistant\nThe dog in the image appears to be a Labrador Retriever. It has a light brown or golden color, which is characteristic of this breed. Labrador Retrievers are known for their friendly demeanor and',
         })  # fmt: skip
         EXPECTED_DECODED_TEXT = expected_decoded_texts.get_expectation()
 
