@@ -106,7 +106,8 @@ class MptAttention(nn.Module):
             key_states, value_states = past_key_values.update(key_states, value_states, self.layer_idx)
 
         attention_scores = torch.matmul(query_states, key_states.transpose(-1, -2)) * self.softmax_scale
-        query_length = seq_length if past_key_values is None else seq_length + past_key_values.get_seq_length()
+        # Taken from the cached keys, whose length is static, rather than from the data-dependent cache counter
+        query_length = seq_length if past_key_values is None else key_states.shape[-2]
 
         if position_bias is not None:
             if len(position_bias.shape) != 3:
